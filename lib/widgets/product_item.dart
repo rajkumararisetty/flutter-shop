@@ -8,6 +8,7 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
 
@@ -39,16 +40,43 @@ class ProductItem extends StatelessWidget {
             icon: Consumer<Product>(
               builder: (ctx, pd, _) => Icon(pd.isFavorite ? Icons.favorite : Icons.favorite_border),
             ),
-            onPressed: product.toggleFavoriteStatus,
+            onPressed: () async {
+              try {
+                await product.toggleFavoriteStatus();
+              } catch(error) {
+                scaffold.showSnackBar(
+                  SnackBar(
+                    duration: Duration(seconds: 2),
+                    content: Text(
+                      error.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+            },
             color: Theme.of(context).accentColor,
           ),
           trailing: IconButton(
             icon: Icon(Icons.shopping_cart),
-            onPressed: () => cart.addItem(
-              product.id,
-              product.price,
-              product.title,
-            ),
+            onPressed: () {
+              cart.addItem(
+                product.id,
+                product.price,
+                product.title,
+              );
+              Scaffold.of(context).hideCurrentSnackBar();
+              Scaffold.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Added item to cart'),
+                  duration: Duration(seconds: 2),
+                  action: SnackBarAction(
+                    label: 'UNDO',
+                    onPressed: () => cart.removeSingleItem(product.id),
+                  ),
+                ),
+              );
+            },
             color: Theme.of(context).accentColor,
           ),
         ),
