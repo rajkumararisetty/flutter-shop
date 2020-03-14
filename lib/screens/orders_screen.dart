@@ -12,42 +12,44 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  var _isLoading = false;
-  @override
-  void initState() {
-    _refreshOrders();
-    super.initState();
-  }
-
   Future<void> _refreshOrders() async {
-    setState(() {
-      _isLoading = true;
-    });
-    Provider.of<Orders>(context, listen: false).fetchAndSetOrders().then((_) {
-      setState(() {
-        _isLoading = false;
-      });
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final orderData = Provider.of<Orders>(context);
+    //final orderData = Provider.of<Orders>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Order'),
       ),
       drawer: AppDrawer(),
-      body: _isLoading ? Center(
-        child: CircularProgressIndicator(),
-      ) : RefreshIndicator(
-        onRefresh: _refreshOrders,
-        child: ListView.builder(
-          itemCount: orderData.orders.length,
-          itemBuilder: (BuildContext _, int i) {
-            return OrderItem(orderData.orders[i]);
+      body: FutureBuilder(
+        future: Provider.of<Orders>(context, listen: false).fetchAndSetOrders(),
+        builder: (BuildContext ctx, dataSnapShot) {
+          if (dataSnapShot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if(dataSnapShot.error != null) {
+            // Do error handling stuff
+            return Center(
+              child: Text('An error occured')
+            );
+          } else {
+            return RefreshIndicator(
+              onRefresh: _refreshOrders,
+              child: Consumer<Orders>(
+                builder: (ctx, orderData, _) => ListView.builder(
+                  itemCount: orderData.orders.length,
+                  itemBuilder: (BuildContext _, int i) {
+                    return OrderItem(orderData.orders[i]);
+                  }
+                ),
+              ),
+            );
           }
-        ),
+        },
       ),
     );
   }
