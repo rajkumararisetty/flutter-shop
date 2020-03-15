@@ -9,12 +9,11 @@ class UserProductsScreen extends StatelessWidget {
   static const routeName = '/user-products';
 
   Future<void> _refreshProducts(BuildContext ctx) async {
-    Provider.of<Products>(ctx, listen: false).fetchAndSetProducts();
+    Provider.of<Products>(ctx, listen: false).fetchAndSetProducts(filterByUser: true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final productsData = Provider.of<Products>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Products'),
@@ -25,22 +24,29 @@ class UserProductsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProducts(context),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListView.builder(
-            itemCount: productsData.items.length,
-            itemBuilder: (_, i) => Column(
-              children: <Widget>[
-                UserProductItem(
-                  id: productsData.items[i].id,
-                  title: productsData.items[i].title,
-                  imageUrl: productsData.items[i].imageUrl,
-                ),
-                const Divider(thickness: 1,)
-              ],
-            )
+      body: FutureBuilder(
+        future: Provider.of<Products>(context, listen: false).fetchAndSetProducts(filterByUser: true),
+        builder: (ctx, dataSnapShot) => dataSnapShot.connectionState == ConnectionState.waiting ? Center(
+          child: CircularProgressIndicator(),
+        ) : RefreshIndicator(
+          onRefresh: () => _refreshProducts(context),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Consumer<Products>(
+              builder: (ctx,productsData, _) => ListView.builder(
+                itemCount: productsData.items.length,
+                itemBuilder: (_, i) => Column(
+                  children: <Widget>[
+                    UserProductItem(
+                      id: productsData.items[i].id,
+                      title: productsData.items[i].title,
+                      imageUrl: productsData.items[i].imageUrl,
+                    ),
+                    const Divider(thickness: 1,)
+                  ],
+                )
+              ),
+            ),
           ),
         ),
       ),
