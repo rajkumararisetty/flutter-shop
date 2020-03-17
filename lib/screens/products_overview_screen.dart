@@ -38,6 +38,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
     } catch(error) {
       print(error);
     }
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });

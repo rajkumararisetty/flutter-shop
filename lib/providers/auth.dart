@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,7 +32,7 @@ class Auth extends ChangeNotifier {
 
   Future<void> _authenticate(String email, String password, String urlSegment) async {
     try {
-      final url = 'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=AIzaSyBh2PI8SXa9UkhyIrE1MjXMLSScn0UmM68';
+      final url = 'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=${DotEnv().env['API_KEY']}';
       final response = await http.post(
         url,
         body: json.encode({
